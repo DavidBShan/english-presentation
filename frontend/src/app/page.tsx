@@ -132,17 +132,7 @@ export default function Home() {
         >
           {isCalling ? "Banish Fortunato" : "Summon Fortunato"}
         </button>
-      </div>
-
-      {imageUrl && (
-        <div className="mt-6">
-          <img
-            src={imageUrl}
-            alt="Generated Haunted Ad"
-            className="w-96 h-auto rounded-lg shadow-[0_0_20px_#ff0000]"
-          />
-        </div>
-      )}
+      </div> 
     </div>
   );
 }
