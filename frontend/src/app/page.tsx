@@ -94,7 +94,7 @@ export default function Home() {
 
   async function registerCall(agentId: string): Promise<RegisterCallResponse> {
     try {
-      const response = await fetch("http://localhost:8080/create-web-call", {
+      const response = await fetch("/api/create-web-call", { // Use relative path for API route
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -103,11 +103,11 @@ export default function Home() {
           agent_id: agentId,
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
       }
-
+  
       const data: RegisterCallResponse = await response.json();
       return data;
     } catch (err) {
@@ -115,6 +115,7 @@ export default function Home() {
       throw new Error(err instanceof Error ? err.message : String(err));
     }
   }
+  
 
   return (
     <div
