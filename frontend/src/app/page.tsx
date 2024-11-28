@@ -11,8 +11,7 @@ interface RegisterCallResponse {
   access_token: string;
 }
 
-export default function Home() {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+export default function Home() { 
   const [isCalling, setIsCalling] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
 
@@ -65,7 +64,7 @@ export default function Home() {
       }
     }
   };
-  
+
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   async function registerCall(agentId: string): Promise<RegisterCallResponse> {
