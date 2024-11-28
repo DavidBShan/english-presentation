@@ -1,27 +1,39 @@
-// pages/api/create-web-call.js
-import axios from "axios";
+import axios from 'axios';
+import dotenv from 'dotenv';
 
-export default async function handler(req, res) {
-    if (req.method !== "POST") {
-        return res.status(405).json({ error: "Method not allowed" });
-    }
+dotenv.config();
 
-    const { agent_id } = req.body;
-
+// Define the `POST` method handler
+export async function POST(req) {
     try {
-        const response = await axios.post("https://api.retellai.com/v2/create-web-call",
-            { agent_id },
+        // Parse JSON body from the request
+        const body = await req.json();
+        const { agent_id, metadata, retell_llm_dynamic_variables } = body;
+
+        // Prepare the payload
+        const payload = { agent_id };
+        if (metadata) payload.metadata = metadata;
+        if (retell_llm_dynamic_variables) payload.retell_llm_dynamic_variables = retell_llm_dynamic_variables;
+
+        // Make the API request
+        const response = await axios.post(
+            'https://api.retellai.com/v2/create-web-call',
+            payload,
             {
                 headers: {
                     Authorization: `Bearer ${process.env.RETELL_API_KEY}`,
-                    "Content-Type": "application/json",
+                    'Content-Type': 'application/json',
                 },
             }
         );
 
-        res.status(200).json(response.data);
+        return new Response(JSON.stringify(response.data), { status: 201 });
     } catch (error) {
-        console.error(error.response?.data || error.message);
-        res.status(500).json({ error: "Failed to create web call" });
+        console.error('Error creating web call:', error.response?.data || error.message);
+
+        return new Response(
+            JSON.stringify({ error: 'Failed to create web call' }),
+            { status: 500 }
+        );
     }
 }

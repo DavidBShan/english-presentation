@@ -1,11 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { RetellWebClient } from "retell-client-js-sdk";
 import { SunIcon, MoonIcon } from "@heroicons/react/24/solid";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const agentId = "a29d458e9d138371eeecb3932f328ed9";
 const webClient = new RetellWebClient();
@@ -19,51 +16,52 @@ export default function Home() {
   const [isCalling, setIsCalling] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
 
-  const ghostAudioRef = React.useRef<HTMLAudioElement>(null);
+  const ghostAudioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
+    // Toggle body class based on theme
     document.body.className = isDarkMode ? "dark" : "";
 
+    // WebClient events
     webClient.on("call_started", () => {
-      console.log("call started");
+      console.log("Call started");
       setIsCalling(true);
-      // Play ghost sound when the call starts
       if (ghostAudioRef.current) {
         ghostAudioRef.current.currentTime = 0;
         ghostAudioRef.current.play();
-        ghostAudioRef.current.volume = 0.25
+        ghostAudioRef.current.volume = 0.25;
       }
     });
 
     webClient.on("call_ended", () => {
-      console.log("call ended");
+      console.log("Call ended");
       setIsCalling(false);
-      // Stop ghost sound when the call ends
       if (ghostAudioRef.current) {
         ghostAudioRef.current.pause();
       }
     });
 
+    // Cleanup audio on unmount
     return () => {
-      if (ghostAudioRef.current) {
-        ghostAudioRef.current.pause();
-      }
+      if (ghostAudioRef.current) ghostAudioRef.current.pause();
     };
-  }, []);
+  }, [isDarkMode]);
 
   const toggleConversation = async () => {
     if (isCalling) {
       webClient.stopCall();
       setIsCalling(false);
     } else {
-      const registerCallResponse = await registerCall(agentId);
-      if (registerCallResponse.access_token) {
-        webClient
-          .startCall({
+      try {
+        const registerCallResponse = await registerCall(agentId);
+        if (registerCallResponse.access_token) {
+          await webClient.startCall({
             accessToken: registerCallResponse.access_token,
-          })
-          .catch(console.error);
-        setIsCalling(true);
+          });
+          setIsCalling(true);
+        }
+      } catch (err) {
+        console.error("Error starting call:", err);
       }
     }
   };
@@ -88,34 +86,26 @@ export default function Home() {
     }
   };
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-  };
+  const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   async function registerCall(agentId: string): Promise<RegisterCallResponse> {
     try {
-      const response = await fetch("/api/create-web-call", { // Use relative path for API route
+      const response = await fetch("/api/create-web-call", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          agent_id: agentId,
-        }),
+        body: JSON.stringify({ agent_id: agentId }),
       });
-  
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-  
-      const data: RegisterCallResponse = await response.json();
-      return data;
+
+      if (!response.ok) throw new Error(`Error: ${response.status}`);
+
+      return await response.json();
     } catch (err) {
-      console.log(err);
-      throw new Error(err instanceof Error ? err.message : String(err));
+      console.error("Error registering call:", err);
+      throw err;
     }
   }
-  
 
   return (
     <div
@@ -125,10 +115,8 @@ export default function Home() {
           : "bg-gray-100 text-gray-800"
       }`}
     >
-      {/* Ghost Sound */}
-      <audio ref={ghostAudioRef} src="/ghost.mp3" loop/>
+      <audio ref={ghostAudioRef} src="/ghost.mp3" loop />
 
-      {/* Theme Toggle Icon */}
       <button
         onClick={toggleTheme}
         className="absolute top-4 right-4 p-2 transition-transform duration-300 hover:scale-110"
@@ -150,16 +138,14 @@ export default function Home() {
         <div className="text-2xl font-semibold mb-4">
           {isCalling ? "☠️ End Call" : "🍷Drink Amontillado with Fortunato"}
         </div>
-
         <div className="mb-6">
           {isCalling
             ? "Fortunato is live from the underworld!"
             : "Click to awaken Fortunato"}
         </div>
-
         <button
           onClick={toggleConversation}
-          className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+          className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
             isCalling
               ? "bg-red-600 hover:bg-red-900 text-white shadow-[0_0_10px_#ff0000]"
               : "bg-red-600 hover:bg-red-900 text-red-300 shadow-[0_0_15px_#ff4d4d]"
@@ -171,7 +157,7 @@ export default function Home() {
 
       <button
         onClick={generateAd}
-        className="mt-6 px-6 py-3 rounded-lg font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-red-600 hover:bg-red-700 text-white shadow-[0_0_15px_#ff4d4d] hover:shadow-[0_0_20px_#ff6666]"
+        className="mt-6 px-6 py-3 rounded-lg font-semibold transition-all bg-red-600 hover:bg-red-700 text-white"
       >
         Generate Memory
       </button>
