@@ -155,13 +155,6 @@ export default function Home() {
         </button>
       </div>
 
-      <button
-        onClick={generateAd}
-        className="mt-6 px-6 py-3 rounded-lg font-semibold transition-all bg-red-600 hover:bg-red-700 text-white"
-      >
-        Generate Memory
-      </button>
-
       {imageUrl && (
         <div className="mt-6">
           <img
