@@ -65,27 +65,7 @@ export default function Home() {
       }
     }
   };
-
-  const generateAd = async () => {
-    try {
-      const response = await fetch("/api/generateAd", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setImageUrl(data.imageUrl);
-      } else {
-        console.error("Error generating ad");
-      }
-    } catch (error) {
-      console.error("Error calling API:", error);
-    }
-  };
-
+  
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   async function registerCall(agentId: string): Promise<RegisterCallResponse> {
